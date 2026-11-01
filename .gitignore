@@ -34,3 +34,6 @@ build/
 # OS
 .DS_Store
 Thumbs.db
+
+# Local database backups
+product-catalog-backup.sql
