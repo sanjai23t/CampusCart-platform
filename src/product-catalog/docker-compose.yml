@@ -34,3 +34,5 @@ volumes:
   postgres_data:
     external: true
     name: campuscart-postgres-data
+    external: true
+    name: campuscart-postgres-data
