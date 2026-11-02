@@ -1,17 +1,12 @@
-# Environment variables and secrets
+# Environment files and secrets
 .env
 .env.*
 !.env.example
 
-# Terraform
-.terraform/
-*.tfstate
-*.tfstate.*
-*.tfplan
-crash.log
-override.tf
-override.tf.json
-.terraform.lock.hcl.backup
+# Database backups
+*.sql
+*.dump
+*.backup
 
 # Python
 __pycache__/
@@ -19,21 +14,12 @@ __pycache__/
 .venv/
 venv/
 
-# Node
-node_modules/
-dist/
-build/
+# Credential rotation helper
+rotate_credentials.py
 
-# Docker
+# Local and temporary files
 *.log
+*.tmp
 
-# IDE
-.vscode/
-.idea/
-
-# OS
+.pytest_cache/
 .DS_Store
-Thumbs.db
-
-# Local database backups
-product-catalog-backup.sql

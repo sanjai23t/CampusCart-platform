@@ -1,33 +1,62 @@
 
 services:
-  product-catalog:
-    build: .
-    container_name: campuscart-product-catalog
-    ports:
-      - "8000:8000"
-    environment:
-      DATABASE_URL: postgresql+psycopg2://campuscart_user:campuscart_dev123@postgres:5432/campuscart_db
-    depends_on:
-      postgres:
-        condition: service_healthy
-    restart: unless-stopped
-
   postgres:
     image: postgres:17
     container_name: campuscart-postgres
     environment:
-      POSTGRES_USER: campuscart_user
-      POSTGRES_PASSWORD: campuscart_dev123
-      POSTGRES_DB: campuscart_db
+      POSTGRES_USER: ${POSTGRES_USER}
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD}
+      POSTGRES_DB: ${POSTGRES_DB}
     ports:
       - "5432:5432"
     volumes:
       - postgres_data:/var/lib/postgresql/data
     healthcheck:
-      test: ["CMD-SHELL", "pg_isready -U campuscart_user -d campuscart_db"]
+      test: ["CMD-SHELL", "pg_isready -U ${POSTGRES_USER} -d ${POSTGRES_DB}"]
       interval: 5s
       timeout: 5s
       retries: 5
+    restart: unless-stopped
+
+  product-catalog:
+    build:
+      context: .
+    container_name: campuscart-product-catalog
+    ports:
+      - "8000:8000"
+    environment:
+      DATABASE_URL: postgresql+psycopg2://${POSTGRES_USER}:${POSTGRES_PASSWORD}@postgres:5432/${POSTGRES_DB}
+    depends_on:
+      postgres:
+        condition: service_healthy
+    restart: unless-stopped
+
+  auth-service:
+    build:
+      context: ../auth-service
+    container_name: campuscart-auth
+    env_file:
+      - ../auth-service/.env
+    ports:
+      - "8001:8001"
+    depends_on:
+      postgres:
+        condition: service_healthy
+    restart: unless-stopped
+
+  cart-service:
+    build:
+      context: ../cart-service
+    container_name: campuscart-cart
+    env_file:
+      - ../cart-service/.env
+    ports:
+      - "8002:8002"
+    depends_on:
+      postgres:
+        condition: service_healthy
+      product-catalog:
+        condition: service_started
     restart: unless-stopped
 
 volumes:
