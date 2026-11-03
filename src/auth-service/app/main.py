@@ -4,6 +4,7 @@ from fastapi.exceptions import RequestValidationError
 from fastapi.responses import JSONResponse
 from fastapi.security import HTTPBearer, HTTPAuthorizationCredentials
 from sqlalchemy.orm import Session
+from sqlalchemy.exc import IntegrityError
 from jose import JWTError
 
 from app.database import Base, engine
@@ -92,7 +93,22 @@ def register_user(
     )
 
     db.add(new_user)
-    db.commit()
+
+    try:
+        db.commit()
+
+    except IntegrityError as exc:
+        db.rollback()
+
+        # PostgreSQL unique violation
+        if getattr(exc.orig, "pgcode", None) == "23505":
+            raise HTTPException(
+                status_code=status.HTTP_409_CONFLICT,
+                detail="Username or email already registered"
+            )
+
+        raise
+
     db.refresh(new_user)
 
     return new_user
